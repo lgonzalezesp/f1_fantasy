@@ -1,0 +1,23 @@
+<!-- Top Navigation Bar -->
+<header class="border-b border-border-dark bg-background-dark/80 backdrop-blur-md sticky top-0 z-50">
+    <div class="max-w-[1440px] mx-auto px-6 h-16 flex items-center justify-between">
+        <div class="flex items-center gap-4">
+            <div class="w-10 h-10 bg-primary flex items-center justify-center rounded-lg shadow-[0_0_15px_rgba(224,22,0,0.4)]">
+                <span class="material-symbols-outlined text-white">settings_input_component</span>
+            </div>
+            <div>
+                <h1 class="text-xl font-extrabold tracking-tighter uppercase italic leading-none">F1 Fantasy <span class="text-primary">Admin</span></h1>
+                <p class="text-[10px] text-slate-500 font-bold uppercase tracking-[0.2em] leading-none mt-1">Control Tower v2.4</p>
+            </div>
+        </div>
+        <nav class="hidden md:flex items-center gap-8">
+            <a class="text-sm font-bold uppercase tracking-widest text-slate-400 hover:text-white transition-colors" routerLink="/admin-f1-secreto-2026" routerLinkActive="text-primary border-b-2 border-primary pb-1" [routerLinkActiveOptions]="{exact: true}">Gestión</a>
+            <a class="text-sm font-bold uppercase tracking-widest text-slate-400 hover:text-white transition-colors" routerLink="/admin/season" routerLinkActive="text-primary border-b-2 border-primary pb-1">Temporadas</a>
+            <a class="text-sm font-bold uppercase tracking-widest text-slate-400 hover:text-white transition-colors" href="#">Resultados</a>
+            <a class="text-sm font-bold uppercase tracking-widest text-slate-400 hover:text-white transition-colors" href="#">Usuarios</a>
+            <a class="text-sm font-bold uppercase tracking-widest text-slate-400 hover:text-white transition-colors" href="#">Configuración</a>
+        </nav>
+        <div class="flex items-center gap-4">
+        </div>
+    </div>
+</header>

@@ -1,8 +1,9 @@
 import { Component } from '@angular/core';
+import { Navbar } from '../components/navbar/navbar';
 
 @Component({
   selector: 'app-admin',
-  imports: [],
+  imports: [Navbar],
   templateUrl: './admin.html',
   styleUrl: './admin.css',
 })
