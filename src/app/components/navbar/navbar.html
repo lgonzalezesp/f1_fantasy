@@ -17,6 +17,8 @@
                class="text-sm font-bold uppercase tracking-widest text-slate-400 hover:text-white transition-colors">Temporadas</a>
             <a routerLink="/admin/client" routerLinkActive="text-primary border-b-2 border-primary pb-1"
                class="text-sm font-bold uppercase tracking-widest text-slate-400 hover:text-white transition-colors">Participantes</a>
+            <a routerLink="/admin/races" routerLinkActive="text-primary border-b-2 border-primary pb-1"
+               class="text-sm font-bold uppercase tracking-widest text-slate-400 hover:text-white transition-colors">Carreras</a>
             
             <!-- Dropdown Menu for Configuration -->
             <div class="relative group h-full flex items-center">
@@ -52,6 +54,14 @@
                                 <span class="flex items-center gap-3">
                                     <span class="material-symbols-outlined text-lg">groups</span>
                                     Participantes
+                                </span>
+                                <span class="material-symbols-outlined text-sm">chevron_right</span>
+                            </a>
+                            <a routerLink="/admin/races" routerLinkActive="bg-primary/10 text-primary"
+                               class="flex items-center justify-between px-4 py-3 rounded-lg text-[11px] font-bold uppercase tracking-widest text-slate-400 hover:text-white hover:bg-white/5 transition-all">
+                                <span class="flex items-center gap-3">
+                                    <span class="material-symbols-outlined text-lg">flag</span>
+                                    Calendario GP
                                 </span>
                                 <span class="material-symbols-outlined text-sm">chevron_right</span>
                             </a>
