@@ -11,11 +11,65 @@
             </div>
         </div>
         <nav class="hidden md:flex items-center gap-8">
-            <a class="text-sm font-bold uppercase tracking-widest text-slate-400 hover:text-white transition-colors" routerLink="/admin-f1-secreto-2026" routerLinkActive="text-primary border-b-2 border-primary pb-1" [routerLinkActiveOptions]="{exact: true}">Gestión</a>
-            <a class="text-sm font-bold uppercase tracking-widest text-slate-400 hover:text-white transition-colors" routerLink="/admin/season" routerLinkActive="text-primary border-b-2 border-primary pb-1">Temporadas</a>
-            <a class="text-sm font-bold uppercase tracking-widest text-slate-400 hover:text-white transition-colors" href="#">Resultados</a>
-            <a class="text-sm font-bold uppercase tracking-widest text-slate-400 hover:text-white transition-colors" href="#">Usuarios</a>
-            <a class="text-sm font-bold uppercase tracking-widest text-slate-400 hover:text-white transition-colors" href="#">Configuración</a>
+            <a routerLink="/admin-f1-secreto-2026" routerLinkActive="text-primary border-b-2 border-primary pb-1" [routerLinkActiveOptions]="{exact: true}" 
+               class="text-sm font-bold uppercase tracking-widest text-slate-400 hover:text-white transition-colors">Gestión</a>
+            <a routerLink="/admin/season" routerLinkActive="text-primary border-b-2 border-primary pb-1"
+               class="text-sm font-bold uppercase tracking-widest text-slate-400 hover:text-white transition-colors">Temporadas</a>
+            <a routerLink="/admin/client" routerLinkActive="text-primary border-b-2 border-primary pb-1"
+               class="text-sm font-bold uppercase tracking-widest text-slate-400 hover:text-white transition-colors">Participantes</a>
+            
+            <!-- Dropdown Menu for Configuration -->
+            <div class="relative group h-full flex items-center">
+                <div class="text-sm font-bold uppercase tracking-widest text-slate-400 hover:text-white transition-colors flex items-center gap-1 cursor-pointer py-4">
+                    Configuración
+                    <span class="material-symbols-outlined text-sm transition-transform group-hover:rotate-180">expand_more</span>
+                </div>
+                
+                <!-- Dropdown content -->
+                <div class="absolute top-[80%] right-0 w-64 pt-4 opacity-0 invisible group-hover:opacity-100 group-hover:visible group-hover:top-full transition-all duration-300 z-50">
+                    <div class="bg-surface-dark border border-border-dark rounded-xl shadow-2xl overflow-hidden backdrop-blur-xl bg-background-dark/95 p-2">
+                        <p class="px-4 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 border-b border-border-dark/50 mb-1">Panel Administrativo</p>
+                        
+                        <div class="flex flex-col gap-1">
+                            <a routerLink="/admin-f1-secreto-2026" routerLinkActive="bg-primary/10 text-primary" [routerLinkActiveOptions]="{exact: true}" 
+                               class="flex items-center justify-between px-4 py-3 rounded-lg text-[11px] font-bold uppercase tracking-widest text-slate-400 hover:text-white hover:bg-white/5 transition-all">
+                                <span class="flex items-center gap-3">
+                                    <span class="material-symbols-outlined text-lg">dashboard</span>
+                                    Gestión Parrilla
+                                </span>
+                                <span class="material-symbols-outlined text-sm opacity-0 group-hover:opacity-100 transition-opacity">chevron_right</span>
+                            </a>
+                            <a routerLink="/admin/season" routerLinkActive="bg-primary/10 text-primary"
+                               class="flex items-center justify-between px-4 py-3 rounded-lg text-[11px] font-bold uppercase tracking-widest text-slate-400 hover:text-white hover:bg-white/5 transition-all">
+                                <span class="flex items-center gap-3">
+                                    <span class="material-symbols-outlined text-lg">event_note</span>
+                                    Temporadas
+                                </span>
+                                <span class="material-symbols-outlined text-sm">chevron_right</span>
+                            </a>
+                            <a routerLink="/admin/client" routerLinkActive="bg-primary/10 text-primary"
+                               class="flex items-center justify-between px-4 py-3 rounded-lg text-[11px] font-bold uppercase tracking-widest text-slate-400 hover:text-white hover:bg-white/5 transition-all">
+                                <span class="flex items-center gap-3">
+                                    <span class="material-symbols-outlined text-lg">groups</span>
+                                    Participantes
+                                </span>
+                                <span class="material-symbols-outlined text-sm">chevron_right</span>
+                            </a>
+                            
+                            <div class="h-px bg-border-dark my-1 mx-2"></div>
+                            
+                            <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-lg text-[11px] font-bold uppercase tracking-widest text-slate-400 hover:text-white hover:bg-white/5 transition-all">
+                                <span class="material-symbols-outlined text-lg text-slate-500">analytics</span>
+                                Resultados
+                            </a>
+                            <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-lg text-[11px] font-bold uppercase tracking-widest text-slate-400 hover:text-white hover:bg-white/5 transition-all text-slate-600 cursor-not-allowed">
+                                <span class="material-symbols-outlined text-lg">settings</span>
+                                Ajustes Sistema
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </nav>
         <div class="flex items-center gap-4">
         </div>
