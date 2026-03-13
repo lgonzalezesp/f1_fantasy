@@ -1,0 +1,178 @@
+<app-navbar></app-navbar>
+
+<!-- Loading Overlay Modal (Whiter Transparent Filter) -->
+@if (isLoading) {
+    <div class="fixed inset-0 z-[100] flex items-center justify-center bg-white/40 backdrop-blur-md transition-opacity">
+        <div class="bg-surface-dark border border-border-dark p-8 rounded-2xl shadow-2xl flex flex-col items-center justify-center gap-6 transform scale-100">
+            <div class="relative w-16 h-16">
+                <div class="absolute inset-0 rounded-full border-4 border-slate-700"></div>
+                <div class="absolute inset-0 rounded-full border-4 border-primary border-t-transparent animate-spin"></div>
+                <div class="absolute inset-0 flex items-center justify-center text-primary drop-shadow-[0_0_8px_rgba(224,22,0,0.8)]">
+                    <span class="material-symbols-outlined text-2xl">sports_motorsports</span>
+                </div>
+            </div>
+            <p class="text-sm font-black uppercase tracking-widest text-slate-300 animate-pulse">Sincronizando Paddock...</p>
+        </div>
+    </div>
+}
+
+<main class="max-w-[1440px] mx-auto px-6 py-8">
+<!-- Header Section -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10 border-l-4 border-primary pl-6">
+<div>
+<h2 class="text-4xl font-black uppercase tracking-tighter italic italic">Gestión de Pilotos</h2>
+<p class="text-slate-500 font-medium">Panel de control de pilotos y escuderías oficiales</p>
+</div>
+</div>
+
+
+<div class="grid grid-cols-1 lg:grid-cols-10 gap-8">
+<!-- Sidebar: Team Registration (30%) -->
+<aside class="lg:col-span-3 space-y-8">
+<div class="bg-surface-dark rounded-xl border border-border-dark p-6 overflow-hidden relative">
+<div class="absolute top-0 right-0 p-4 opacity-10">
+<span class="material-symbols-outlined text-6xl">groups</span>
+</div>
+<h3 class="text-lg font-bold uppercase tracking-tight mb-6 flex items-center gap-2">
+<span class="w-1.5 h-4 bg-primary rounded-full"></span>
+                        Registrar Equipo
+                    </h3>
+<form [formGroup]="teamForm" (ngSubmit)="onTeamSubmit()" class="space-y-4">
+<div>
+<label class="block text-xs font-bold uppercase text-slate-400 mb-2 px-1">Temporada</label>
+<select formControlName="seasonId" class="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-3 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all">
+    <option value="" disabled>Seleccionar Temporada</option>
+    @for (season of (seasons$ | async); track season.id) {
+        <option [value]="season.id">{{ season.name }}</option>
+    }
+</select>
+</div>
+<div>
+<label class="block text-xs font-bold uppercase text-slate-400 mb-2 px-1">Nombre del Equipo</label>
+<input formControlName="name" class="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-3 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all placeholder:text-slate-600" placeholder="Ej: Red Bull Racing" type="text"/>
+</div>
+<button [disabled]="!teamForm.valid || isSubmitting" class="w-full bg-primary hover:bg-primary/90 disabled:opacity-50 text-white font-bold uppercase tracking-widest py-3 rounded-lg transition-all shadow-[0_4px_15px_rgba(224,22,0,0.3)] flex items-center justify-center gap-2" type="submit">
+<span class="material-symbols-outlined text-sm">add_circle</span>
+                            {{ isSubmitting ? 'Registrando...' : 'Registrar Equipo' }}
+                        </button>
+</form>
+</div>
+
+<!-- List of Teams in current filter (Useful for management) -->
+<div class="bg-surface-dark rounded-xl border border-border-dark p-6">
+    <h4 class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Escuderías en esta temporada</h4>
+    <div class="space-y-2">
+        @for (team of (teams$ | async); track team.id) {
+            <div class="flex items-center justify-between p-3 bg-background-dark/50 rounded-lg border border-border-dark group hover:border-slate-500 transition-colors">
+                <div class="flex items-center gap-3">
+                    <span class="text-sm font-bold uppercase tracking-tight">{{ team.name }}</span>
+                    <span [class]="team.driverCount === 2 ? 'bg-accent-neon/20 text-accent-neon border-accent-neon/30' : 'bg-slate-500/10 text-slate-500 border-slate-500/20'" 
+                          class="px-2 py-0.5 rounded text-[10px] font-black border">
+                        {{ team.driverCount }} / 2
+                    </span>
+                </div>
+                <button (click)="deleteTeam(team.id)" title="Eliminar escudería" class="opacity-0 group-hover:opacity-100 text-slate-500 hover:text-primary transition-all">
+                    <span class="material-symbols-outlined text-sm">delete</span>
+                </button>
+            </div>
+        } @empty {
+            <p class="text-[10px] uppercase font-bold text-slate-600 italic">No hay escuderías registradas para el filtro actual</p>
+        }
+    </div>
+</div>
+</aside>
+
+<!-- Main Panel: Grid Management (70%) -->
+<section class="lg:col-span-7 space-y-6">
+<!-- Add Driver Form -->
+<div class="bg-surface-dark rounded-xl border border-border-dark p-6">
+<h3 class="text-lg font-bold uppercase tracking-tight mb-6 flex items-center gap-2">
+<span class="w-1.5 h-4 bg-accent-neon rounded-full"></span>
+                        Gestión de Parrilla
+                    </h3>
+<div class="p-6 border border-border-dark rounded-xl bg-background-dark/50">
+<h4 class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Añadir Nuevo Piloto</h4>
+<form [formGroup]="driverForm" (ngSubmit)="onDriverSubmit()" class="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
+<div class="md:col-span-12 grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div>
+        <label class="block text-[10px] font-bold uppercase text-slate-500 mb-1 px-1">Temporada</label>
+        <select formControlName="seasonId" class="w-full bg-surface-dark border border-border-dark rounded-lg px-4 py-2.5 outline-none transition-all">
+            @for (season of (seasons$ | async); track season.id) {
+                <option [value]="season.id">{{ season.name }}</option>
+            }
+        </select>
+    </div>
+    <div>
+        <label class="block text-[10px] font-bold uppercase text-slate-500 mb-1 px-1">Escudería</label>
+        <select formControlName="teamId" class="w-full bg-surface-dark border border-border-dark rounded-lg px-4 py-2.5 outline-none transition-all">
+            <option value="" disabled>Seleccionar Escudería</option>
+            @for (team of (driverFormTeams$ | async); track team.id) {
+                <option [value]="team.id">{{ team.name }}</option>
+            }
+        </select>
+    </div>
+</div>
+<div class="md:col-span-12">
+<label class="block text-[10px] font-bold uppercase text-slate-500 mb-1 px-1">Nombre del Piloto</label>
+<input formControlName="name" class="w-full bg-surface-dark border border-border-dark rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-accent-neon/30 focus:border-accent-neon outline-none transition-all" placeholder="Nombre completo" type="text"/>
+</div>
+<div class="md:col-span-12">
+<button [disabled]="!driverForm.valid || isSubmitting" class="w-full bg-primary hover:bg-primary/90 text-white font-bold uppercase tracking-widest py-3 rounded-lg transition-all flex items-center justify-center gap-2 shadow-[0_4px_12px_rgba(224,22,0,0.2)]" type="submit">
+<span class="material-symbols-outlined text-sm">person_add</span>
+                                    {{ isSubmitting ? 'Añadiendo...' : 'Añadir Piloto a Parrilla' }}
+                                </button>
+</div>
+</form>
+</div>
+</div>
+<!-- Driver List -->
+<div class="bg-surface-dark rounded-xl border border-border-dark overflow-hidden">
+<div class="px-6 py-4 border-b border-border-dark flex items-center justify-between bg-white/5">
+<h4 class="font-bold uppercase tracking-widest text-xs">Listado de Pilotos</h4>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead>
+<tr class="text-[10px] uppercase font-black tracking-widest text-slate-500 border-b border-border-dark">
+<th class="px-6 py-4">Piloto</th>
+<th class="px-6 py-4">Escudería</th>
+<th class="px-6 py-4 text-right">Acciones</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-border-dark">
+    @for (driver of (filteredDrivers$ | async); track driver.id) {
+        <tr class="hover:bg-white/5 transition-colors group">
+            <td class="px-6 py-4">
+            <div class="flex items-center gap-3">
+            <div>
+            <p class="font-bold text-sm tracking-tight">{{ driver.name }}</p>
+            </div>
+            </div>
+            </td>
+            <td class="px-6 py-4">
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-white/5 text-slate-400 border border-white/10">
+                                                        {{ driver.teamName }}
+                                                    </span>
+            </td>
+            <td class="px-6 py-4 text-right">
+            <div class="flex justify-end gap-2">
+            <button (click)="deleteDriver(driver.id)" title="Eliminar piloto" class="w-8 h-8 flex items-center justify-center rounded bg-surface-dark border border-border-dark hover:border-primary hover:text-primary transition-all">
+            <span class="material-symbols-outlined text-lg">delete</span>
+            </button>
+            </div>
+            </td>
+        </tr>
+    } @empty {
+        <tr>
+            <td colspan="3" class="px-6 py-12 text-center text-slate-500 italic font-medium">
+                No hay pilotos registrados para esta temporada.
+            </td>
+        </tr>
+    }
+</tbody>
+</table>
+</div>
+</div>
+</section>
+</div>
+</main>
