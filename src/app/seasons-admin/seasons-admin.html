@@ -102,18 +102,19 @@
                                 @for (season of (seasons$ | async); track season.id) {
                                     <tr class="hover:bg-white/5 transition-colors group">
                                         <td class="px-6 py-4">
-                                            <div class="flex items-center gap-3">
-                                                <div class="w-8 h-8 rounded border overflow-hidden flex items-center justify-center text-[10px] font-mono font-bold"
+                                            <a [routerLink]="['/admin/season', season.id]" class="flex items-center gap-3 group/link">
+                                                <div class="w-8 h-8 rounded border overflow-hidden flex items-center justify-center text-[10px] font-mono font-bold transition-all group-hover/link:border-primary/50 group-hover/link:bg-primary/10 group-hover/link:text-primary"
                                                      [ngClass]="season.isActive ? 'border-accent-neon/50 bg-accent-neon/10 text-accent-neon' : 'border-border-dark bg-background-dark text-slate-500'">
-                                                    {{ season.name | slice: -2 }}
-                                                </div>
-                                                <div>
-                                                    <p class="font-bold text-sm tracking-tight" [ngClass]="season.isActive ? 'text-white' : 'text-slate-400'">
-                                                        {{ season.name }}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </td>
+                                                     {{ season.name | slice: -2 }}
+                                                 </div>
+                                                 <div>
+                                                     <p class="font-bold text-sm tracking-tight transition-all group-hover/link:text-primary" [ngClass]="season.isActive ? 'text-white' : 'text-slate-400'">
+                                                         {{ season.name }}
+                                                     </p>
+                                                     <p class="text-[8px] font-black uppercase tracking-[0.2em] text-slate-600 group-hover/link:text-slate-400">Ver Calendario</p>
+                                                 </div>
+                                             </a>
+                                         </td>
                                         <td class="px-6 py-4 text-center">
                                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold"
                                                   [ngClass]="season.isActive ? 'bg-green-500/10 text-green-400 border-green-500/20 border' : 'bg-slate-500/10 text-slate-400 border border-slate-500/20'">

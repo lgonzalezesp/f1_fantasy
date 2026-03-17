@@ -1,7 +1,7 @@
 <!-- Top Navigation Bar -->
 <header class="border-b border-border-dark bg-background-dark/80 backdrop-blur-md sticky top-0 z-50">
     <div class="max-w-[1440px] mx-auto px-6 h-16 flex items-center justify-between">
-        <div class="flex items-center gap-4">
+        <a routerLink="/" class="flex items-center gap-4 hover:opacity-80 transition-opacity">
             <div class="w-10 h-10 bg-primary flex items-center justify-center rounded-lg shadow-[0_0_15px_rgba(224,22,0,0.4)]">
                 <span class="material-symbols-outlined text-white">settings_input_component</span>
             </div>
@@ -9,8 +9,10 @@
                 <h1 class="text-xl font-extrabold tracking-tighter uppercase italic leading-none">F1 Fantasy <span class="text-primary">Admin</span></h1>
                 <p class="text-[10px] text-slate-500 font-bold uppercase tracking-[0.2em] leading-none mt-1">Control Tower v2.4</p>
             </div>
-        </div>
+        </a>
         <nav class="hidden md:flex items-center gap-8">
+            <a routerLink="/" routerLinkActive="text-primary border-b-2 border-primary pb-1" [routerLinkActiveOptions]="{exact: true}"
+               class="text-sm font-bold uppercase tracking-widest text-slate-400 hover:text-white transition-colors">Home</a>
             <a routerLink="/admin/driver" routerLinkActive="text-primary border-b-2 border-primary pb-1"
                class="text-sm font-bold uppercase tracking-widest text-slate-400 hover:text-white transition-colors">Pilotos</a>
             <a routerLink="/admin/season" routerLinkActive="text-primary border-b-2 border-primary pb-1"
@@ -66,11 +68,24 @@
                                 <span class="material-symbols-outlined text-sm">chevron_right</span>
                             </a>
                             
+                            <a routerLink="/admin/races/response" routerLinkActive="bg-primary/10 text-primary"
+                               class="flex items-center justify-between px-4 py-3 rounded-lg text-[11px] font-bold uppercase tracking-widest text-slate-400 hover:text-white hover:bg-white/5 transition-all">
+                                <span class="flex items-center gap-3">
+                                    <span class="material-symbols-outlined text-lg">upload_file</span>
+                                    Carga de Respuestas
+                                </span>
+                                <span class="material-symbols-outlined text-sm">chevron_right</span>
+                            </a>
+                            
                             <div class="h-px bg-border-dark my-1 mx-2"></div>
                             
-                            <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-lg text-[11px] font-bold uppercase tracking-widest text-slate-400 hover:text-white hover:bg-white/5 transition-all">
-                                <span class="material-symbols-outlined text-lg text-slate-500">analytics</span>
-                                Resultados
+                            <a routerLink="/" routerLinkActive="bg-primary/10 text-primary" [routerLinkActiveOptions]="{exact: true}"
+                               class="flex items-center justify-between px-4 py-3 rounded-lg text-[11px] font-bold uppercase tracking-widest text-slate-400 hover:text-white hover:bg-white/5 transition-all">
+                                <span class="flex items-center gap-3">
+                                    <span class="material-symbols-outlined text-lg text-slate-500">analytics</span>
+                                    Resultados (Home)
+                                </span>
+                                <span class="material-symbols-outlined text-sm">chevron_right</span>
                             </a>
                             <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-lg text-[11px] font-bold uppercase tracking-widest text-slate-400 hover:text-white hover:bg-white/5 transition-all text-slate-600 cursor-not-allowed">
                                 <span class="material-symbols-outlined text-lg">settings</span>

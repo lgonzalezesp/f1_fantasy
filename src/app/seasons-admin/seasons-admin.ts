@@ -5,10 +5,11 @@ import { Season, SeasonModel } from '../services/season';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Navbar } from '../components/navbar/navbar';
+import { RouterLink } from '@angular/router';
 
 @Component({
   selector: "app-seasons-admin",
-  imports: [CommonModule, ReactiveFormsModule, Navbar],
+  imports: [CommonModule, ReactiveFormsModule, Navbar, RouterLink],
   templateUrl: "./seasons-admin.html",
   styleUrl: "./seasons-admin.css",
 })

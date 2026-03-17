@@ -1,0 +1,156 @@
+<app-navbar></app-navbar>
+
+@if (isLoading) {
+    <div class="fixed inset-0 z-[100] flex items-center justify-center bg-white/40 backdrop-blur-md transition-opacity">
+        <div class="bg-surface-dark border border-border-dark p-8 rounded-2xl shadow-2xl flex flex-col items-center justify-center gap-6 transform scale-100">
+            <div class="relative w-16 h-16">
+                <div class="absolute inset-0 rounded-full border-4 border-slate-700"></div>
+                <div class="absolute inset-0 rounded-full border-4 border-primary border-t-transparent animate-spin"></div>
+                <div class="absolute inset-0 flex items-center justify-center text-primary drop-shadow-[0_0_8px_rgba(224,22,0,0.8)]">
+                    <span class="material-symbols-outlined text-2xl">monitoring</span>
+                </div>
+            </div>
+            <p class="text-sm font-black uppercase tracking-widest text-slate-300 animate-pulse">Analizando Resultados...</p>
+        </div>
+    </div>
+}
+
+<main class="max-w-[1440px] mx-auto px-6 py-8">
+    <!-- Header Section -->
+    <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10 border-l-4 border-accent-neon pl-6">
+        <div>
+            <div class="flex items-center gap-2 mb-2">
+                @if (race) {
+                    <a [routerLink]="['/admin/season', race.seasonId]" class="text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-accent-neon transition-colors flex items-center gap-1">
+                        <span class="material-symbols-outlined text-xs">arrow_back</span>
+                        Volver al Calendario
+                    </a>
+                }
+            </div>
+            <h2 class="text-4xl font-black uppercase tracking-tighter italic">{{ race?.name || 'Resultados de Carrera' }}</h2>
+            <p class="text-slate-500 font-medium lowercase italic">{{ race?.circuit }} — Clasificación Final de Puntos</p>
+        </div>
+        
+        <div class="flex items-center gap-4">
+            <div class="px-6 py-3 bg-white/5 border border-white/10 rounded-2xl flex flex-col items-end">
+                <span class="text-[8px] font-black uppercase tracking-widest text-slate-500">Participantes</span>
+                <span class="text-2xl font-black text-white leading-none">
+                    @if (responses$ | async; as res) { {{ res.length }} } @else { 0 }
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Results List -->
+    <div class="flex flex-col gap-4">
+        @for (res of (responses$ | async); track res.id; let idx = $index) {
+            <div class="bg-surface-dark border border-border-dark rounded-3xl overflow-hidden group hover:border-accent-neon/30 hover:shadow-[0_0_30px_rgba(57,255,20,0.05)] transition-all">
+                <!-- Participant Row -->
+                <div class="px-8 py-6 flex items-center justify-between bg-white/[0.02] group-hover:bg-white/[0.04] transition-colors">
+                    <div class="flex items-center gap-8 flex-1 min-w-0">
+                        <!-- Ranking -->
+                        <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-xl font-black shrink-0 border italic"
+                             [class.bg-accent-neon]="idx === 0" [class.text-background-dark]="idx === 0" [class.border-accent-neon]="idx === 0"
+                             [class.bg-white/5]="idx > 0" [class.text-slate-500]="idx > 0" [class.border-white/10]="idx > 0">
+                            {{ idx + 1 }}
+                        </div>
+                        
+                        <div class="flex flex-col min-w-0">
+                            <span class="text-[8px] font-black uppercase tracking-[0.2em] text-slate-500 mb-1">Participante</span>
+                            <span class="text-lg font-black text-white uppercase italic tracking-tight truncate">{{ res.participantName }}</span>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-12 shrink-0 pl-6">
+                        <div class="flex flex-col items-end">
+                            <span class="text-[8px] font-black uppercase tracking-[0.2em] text-slate-500 mb-1">Aciertos</span>
+                            <span class="text-xs font-bold text-slate-400">
+                                {{ res.answers.length }} preguntas procesadas
+                            </span>
+                        </div>
+                        <div class="flex flex-col items-end min-w-[100px]">
+                            <span class="text-[8px] font-black uppercase tracking-[0.2em] text-accent-neon mb-1">Puntaje Final</span>
+                            <div class="flex items-baseline gap-1">
+                                <span class="text-3xl font-black text-accent-neon italic leading-none drop-shadow-[0_0_15px_rgba(57,255,20,0.3)]">
+                                    {{ res.totalScore }}
+                                </span>
+                                <span class="text-[10px] font-black text-accent-neon/50 uppercase">pts</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Vertical Detail Breakdown -->
+                <div class="border-t border-white/5 bg-black/20 p-6">
+                    <div class="flex flex-col gap-3">
+                        @for (ans of res.answers; track aq_idx; let aq_idx = $index) {
+                            <div class="flex items-start gap-4 p-4 rounded-2xl bg-surface-dark/40 border border-border-dark/20 group/q hover:bg-white/[0.02] transition-all">
+                                <!-- Question number -->
+                                <div class="w-8 h-8 rounded-lg bg-background-dark border border-border-dark flex items-center justify-center text-[10px] font-black text-slate-500 shrink-0 mt-1">
+                                    {{ aq_idx + 1 }}
+                                </div>
+
+                                <div class="flex-1 flex flex-col gap-4 min-w-0">
+                                    <!-- Question -->
+                                    <div class="flex flex-col">
+                                        <span class="text-[7px] font-black text-slate-600 uppercase tracking-widest mb-1">Pregunta</span>
+                                        <p class="text-[11px] font-bold text-slate-200 leading-tight">
+                                            {{ ans.question }}
+                                        </p>
+                                    </div>
+
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <!-- Compare -->
+                                        <div class="flex flex-col p-3 rounded-xl bg-accent-neon/5 border border-accent-neon/10">
+                                            <span class="text-[7px] font-black text-accent-neon uppercase tracking-widest mb-1">Respuesta Esperada</span>
+                                            <p class="text-[10px] font-black text-white italic">
+                                                {{ getCorrectAnswerForQuestion(ans.question) }}
+                                            </p>
+                                        </div>
+                                        <div class="flex flex-col p-3 rounded-xl bg-white/5 border border-white/10">
+                                            <span class="text-[7px] font-black text-slate-500 uppercase tracking-widest mb-1">Respuesta dada</span>
+                                            <p class="text-[10px] font-bold text-slate-400 italic">
+                                                {{ ans.answer || '—' }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Result status -->
+                                <div class="min-w-[80px] flex flex-col items-end pt-2">
+                                    <div class="flex flex-col items-end gap-1">
+                                        <span class="text-2xl font-black italic leading-none"
+                                              [class.text-accent-neon]="(ans.points || 0) > 0"
+                                              [class.text-slate-700]="(ans.points || 0) === 0">
+                                            {{ ans.points }}
+                                        </span>
+                                        <span class="text-[7px] font-black uppercase tracking-tighter opacity-40">puntos</span>
+                                    </div>
+                                    @if ((ans.points || 0) > 0) {
+                                        <span class="mt-2 text-[6px] font-black bg-accent-neon/10 text-accent-neon border border-accent-neon/20 px-2 py-0.5 rounded-full uppercase">Completado</span>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        } @empty {
+            <div class="py-20 flex flex-col items-center justify-center gap-6 bg-surface-dark border border-border-dark rounded-3xl">
+                <div class="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center text-slate-700">
+                    <span class="material-symbols-outlined text-5xl">bar_chart</span>
+                </div>
+                <div class="text-center">
+                    <p class="text-xs font-black uppercase tracking-[0.3em] text-slate-500 italic">Sin datos disponibles</p>
+                    <p class="text-[10px] text-slate-600 font-bold uppercase mt-2">Esta carrera aún no tiene respuestas procesadas</p>
+                </div>
+                @if (race) {
+                    <a [routerLink]="['/admin/races/response']" [queryParams]="{ seasonId: race.seasonId, raceId: race.id }" 
+                       class="mt-4 px-6 py-3 bg-primary text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-primary/90 transition-all">
+                        Cargar Resultados Ahora
+                    </a>
+                }
+            </div>
+        }
+    </div>
+</main>

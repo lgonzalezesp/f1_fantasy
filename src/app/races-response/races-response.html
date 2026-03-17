@@ -1,0 +1,406 @@
+<app-navbar></app-navbar>
+
+<!-- Loading Overlay -->
+@if (isLoading || isProcessing) {
+    <div class="fixed inset-0 z-[100] flex items-center justify-center bg-white/40 backdrop-blur-md transition-opacity">
+        <div class="bg-surface-dark border border-border-dark p-8 rounded-2xl shadow-2xl flex flex-col items-center justify-center gap-6 transform scale-100">
+            <div class="relative w-16 h-16">
+                <div class="absolute inset-0 rounded-full border-4 border-slate-700"></div>
+                <div class="absolute inset-0 rounded-full border-4 border-primary border-t-transparent animate-spin"></div>
+                <div class="absolute inset-0 flex items-center justify-center text-primary drop-shadow-[0_0_8px_rgba(224,22,0,0.8)]">
+                    <span class="material-symbols-outlined text-2xl">{{ isProcessing ? 'cloud_upload' : 'analytics' }}</span>
+                </div>
+            </div>
+            <p class="text-sm font-black uppercase tracking-widest text-slate-300 animate-pulse">
+                {{ isProcessing ? 'Procesando Archivo...' : 'Consultando Telemetría...' }}
+            </p>
+        </div>
+    </div>
+}
+
+<main class="max-w-[1200px] mx-auto px-6 py-12">
+    <!-- Header -->
+    <div class="mb-12 border-l-4 border-primary pl-8">
+        <h2 class="text-5xl font-black uppercase tracking-tighter italic text-white leading-none mb-2">Carga de Respuestas</h2>
+        <p class="text-slate-500 font-bold uppercase tracking-widest text-xs">Importación masiva de resultados de participantes via CSV</p>
+    </div>
+
+    <div class="flex flex-col gap-12 items-center">
+        <!-- Configuration Card -->
+        <div class="w-full space-y-6">
+            <div class="bg-surface-dark w-full rounded-3xl border border-border-dark p-6 relative overflow-hidden group shadow-2xl">
+                <div class="absolute -top-10 -right-10 w-40 h-40 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/10 transition-all"></div>
+                
+                <h3 class="text-sm font-bold uppercase tracking-tight mb-6 flex items-center gap-3">
+                    <span class="w-1.5 h-4 bg-primary rounded-full shadow-[0_0_10px_rgba(224,22,0,0.5)]"></span>
+                    Configuración de Carga
+                </h3>
+
+                <form [formGroup]="form" class="flex flex-col lg:flex-row items-end gap-6 w-full">
+                    <div class="flex-1 w-full lg:w-auto h-full grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="space-y-1">
+                            <label class="text-[9px] font-black uppercase tracking-[0.2em] text-slate-500 px-1">Temporada</label>
+                            <select formControlName="seasonId" class="w-full bg-background-dark/50 border border-border-dark rounded-xl px-4 py-3 text-xs font-bold text-slate-200 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all appearance-none cursor-pointer h-[50px]">
+                                <option value="">Selección...</option>
+                                @for (season of (seasons$ | async); track season.id) {
+                                    <option [value]="season.id">{{ season.name }}</option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="space-y-1">
+                            <label class="text-[9px] font-black uppercase tracking-[0.2em] text-slate-500 px-1">Gran Premio</label>
+                            <select formControlName="raceId" class="w-full bg-background-dark/50 border border-border-dark rounded-xl px-4 py-3 text-xs font-bold text-slate-200 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all appearance-none cursor-pointer h-[50px]">
+                                <option value="">Selección...</option>
+                                @for (race of (races$ | async); track race.id) {
+                                    <option [value]="race.id">RD {{ race.round }} - {{ race.name }}</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="flex-1 w-full lg:w-auto">
+                        <label class="relative block w-full group">
+                            <input type="file" (change)="onFileChange($event)" accept=".csv" class="hidden"/>
+                            <div class="w-full h-[50px] bg-surface-dark border border-border-dark rounded-xl px-4 flex items-center gap-3 cursor-pointer hover:border-primary/50 hover:bg-white/5 transition-all outline-none focus-within:ring-2 focus-within:ring-primary/50">
+                                <span class="material-symbols-outlined text-primary text-xl">upload_file</span>
+                                <div class="flex-1 whitespace-nowrap overflow-hidden text-ellipsis">
+                                    <span class="text-[10px] font-black uppercase tracking-widest text-white">Archivo CSV</span>
+                                </div>
+                                <span class="bg-primary/20 text-primary px-3 py-1 rounded-md text-[9px] font-black uppercase tracking-wider group-hover:bg-primary group-hover:text-white transition-colors">
+                                    Buscar
+                                </span>
+                            </div>
+                        </label>
+                    </div>
+
+                    <div class="w-full lg:w-auto">
+                        <div class="w-full lg:w-[220px] h-[50px] bg-white/5 border border-white/10 text-slate-400 text-[10px] font-black uppercase tracking-[0.2em] rounded-xl flex items-center justify-center gap-2 italic">
+                            <span class="material-symbols-outlined text-lg">data_check</span>
+                            {{ parsedData.length > 0 ? 'CSV Cargado' : 'Esperando CSV' }}
+                        </div>
+                    </div>
+                </form>
+
+                @if (uploadStatus) {
+                    <div class="mt-4 p-3 rounded-lg bg-white/5 border border-border-dark flex items-center gap-3 animate-in fade-in h-[40px]">
+                        <span class="material-symbols-outlined text-primary text-sm">info</span>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wide truncate max-w-full">{{ uploadStatus }}</p>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Preview Panel -->
+        <div class="w-full">
+            <div class="bg-surface-dark border border-border-dark rounded-3xl overflow-hidden shadow-2xl min-h-[600px] flex flex-col">
+                <div class="px-8 py-6 border-b border-border-dark bg-white/5 flex items-center justify-between transition-all">
+                    <div class="flex items-center gap-4">
+                        <div class="flex flex-col">
+                            <h4 class="font-black uppercase tracking-[0.2em] text-xs text-white">
+                                {{ currentStep === 1 ? 'Paso 1: Configurar Respuestas' : 'Paso 2: Resultados Calculados' }}
+                            </h4>
+                            <p class="text-[10px] text-slate-500 font-bold uppercase mt-1">
+                                {{ currentStep === 1 ? 'Registra la opción correcta para cada pregunta' : 'Revisión final de puntos por participante' }}
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center gap-4">
+                        @if (currentStep === 2) {
+                            <button (click)="currentStep = 1" 
+                                class="bg-white/5 hover:bg-white/10 text-slate-300 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 border border-white/10">
+                                <span class="material-symbols-outlined text-sm">arrow_back</span>
+                                Volver a Config
+                            </button>
+                        }
+                        
+                        @if (parsedData.length > 0 && currentStep === 1) {
+                            <div class="flex flex-col items-end gap-2">
+                                <button (click)="uploadResponses()" [disabled]="!isConfigValid || isProcessing" 
+                                    class="bg-primary hover:bg-primary/90 disabled:opacity-20 disabled:grayscale text-white px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 shadow-lg shadow-primary/20">
+                                    <span class="material-symbols-outlined text-sm">save</span>
+                                    Guardar y Calcular
+                                </button>
+                                @if (!isConfigValid) {
+                                    <span class="text-[8px] font-bold text-primary uppercase tracking-tighter animate-pulse">Cada pregunta requiere respuesta y puntos > 0</span>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <div class="flex-1 overflow-hidden transition-all duration-500 py-8 min-h-[400px]">
+                    @if (parsedData.length > 0) {
+                        <!-- STEP 1: CONFIGURATION LIST -->
+                        @if (currentStep === 1) {
+                            <div class="px-8 overflow-y-auto max-h-[800px] custom-scrollbar animate-in fade-in slide-in-from-left-4 duration-500">
+                                <ul class="space-y-6">
+                                    @for (q of extractedQuestions; track $index) {
+                                        <li class="bg-background-dark/50 border border-border-dark p-6 rounded-2xl flex flex-col gap-6 group hover:border-primary/50 transition-all">
+                                            <!-- Header: Question Title -->
+                                            <div class="flex items-start gap-4">
+                                                <div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                                                    <span class="text-[10px] font-black">{{ $index + 1 }}</span>
+                                                </div>
+                                                <h5 class="text-sm font-bold text-slate-100 leading-tight pt-1.5">{{ q.question }}</h5>
+                                            </div>
+
+                                            <div class="pl-12 flex flex-col sm:flex-row gap-4">
+                                                <div class="space-y-2">
+                                                    <label class="text-[8px] font-black uppercase tracking-widest text-slate-500 block px-1">Tipo de Respuesta</label>
+                                                    <div class="flex bg-white/5 p-1 rounded-xl border border-white/10 w-fit">
+                                                        <button (click)="changeType(q, 'driver')" 
+                                                            class="px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all"
+                                                            [class.bg-primary]="q.type === 'driver'"
+                                                            [class.text-white]="q.type === 'driver'">PILOTO</button>
+                                                        <button (click)="changeType(q, 'team')" 
+                                                            class="px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all"
+                                                            [class.bg-accent-neon]="q.type === 'team'"
+                                                            [class.text-background-dark]="q.type === 'team'">EQUIPO</button>
+                                                        <button (click)="changeType(q, 'boolean')" 
+                                                            class="px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all"
+                                                            [class.bg-orange-500]="q.type === 'boolean'"
+                                                            [class.text-white]="q.type === 'boolean'">BOOLEAN</button>
+                                                        <button (click)="changeType(q, 'text')" 
+                                                            class="px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all"
+                                                            [class.bg-slate-500]="q.type === 'text'"
+                                                            [class.text-white]="q.type === 'text'">TEXTO</button>
+                                                    </div>
+                                                </div>
+
+                                                <div class="space-y-2">
+                                                    <label class="text-[8px] font-black uppercase tracking-widest text-slate-500 block px-1">Modo</label>
+                                                    <div class="flex bg-white/5 p-1 rounded-xl border border-white/10 w-fit">
+                                                        <button (click)="changeMode(q, 'single')" 
+                                                            class="px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all"
+                                                            [class.bg-white]="q.mode === 'single'"
+                                                            [class.text-background-dark]="q.mode === 'single'">ÚNICA</button>
+                                                        <button (click)="changeMode(q, 'multiple')" 
+                                                            class="px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all"
+                                                            [class.bg-accent-neon]="q.mode === 'multiple'"
+                                                            [class.text-background-dark]="q.mode === 'multiple'">MÚLTIPLE</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="pl-12 w-full">
+                                                @if (q.type === 'driver') {
+                                                    <div class="flex flex-wrap gap-2">
+                                                        @for (driver of (drivers$ | async); track driver.id) {
+                                                            <button 
+                                                                (click)="toggleAnswer(q, driver.name)"
+                                                                class="px-4 py-2 rounded-xl text-xs font-bold transition-all border shrink-0"
+                                                                [class.bg-primary]="q.answers.includes(driver.name)"
+                                                                [class.border-primary]="q.answers.includes(driver.name)"
+                                                                [class.text-white]="q.answers.includes(driver.name)"
+                                                                [class.shadow-[0_0_15px_rgba(224,22,0,0.4)]]="q.answers.includes(driver.name)"
+                                                                [class.bg-surface-dark]="!q.answers.includes(driver.name)"
+                                                                [class.border-border-dark]="!q.answers.includes(driver.name)"
+                                                                [class.text-slate-400]="!q.answers.includes(driver.name)"
+                                                                [class.hover:border-slate-500]="!q.answers.includes(driver.name)">
+                                                                {{ driver.name }}
+                                                            </button>
+                                                        }
+                                                    </div>
+                                                } @else if (q.type === 'team') {
+                                                    <div class="flex flex-wrap gap-2">
+                                                        @for (team of (teams$ | async); track team.id) {
+                                                            <button 
+                                                                (click)="toggleAnswer(q, team.name)"
+                                                                class="px-4 py-2 rounded-xl text-xs font-bold transition-all border shrink-0"
+                                                                [class.bg-accent-neon]="q.answers.includes(team.name)"
+                                                                [class.border-accent-neon]="q.answers.includes(team.name)"
+                                                                [class.text-background-dark]="q.answers.includes(team.name)"
+                                                                [class.shadow-[0_0_15px_rgba(0,255,255,0.4)]]="q.answers.includes(team.name)"
+                                                                [class.bg-surface-dark]="!q.answers.includes(team.name)"
+                                                                [class.border-border-dark]="!q.answers.includes(team.name)"
+                                                                [class.text-slate-400]="!q.answers.includes(team.name)"
+                                                                [class.hover:border-slate-500]="!q.answers.includes(team.name)">
+                                                                {{ team.name }}
+                                                            </button>
+                                                        }
+                                                    </div>
+                                                } @else if (q.type === 'boolean') {
+                                                    <div class="flex gap-4">
+                                                        <button (click)="toggleAnswer(q, 'Si')"
+                                                            class="flex-1 py-3 rounded-xl border border-border-dark font-black uppercase tracking-widest text-xs transition-all"
+                                                            [class.bg-green-500/20]="q.answers.includes('Si')"
+                                                            [class.text-green-400]="q.answers.includes('Si')"
+                                                            [class.border-green-500/50]="q.answers.includes('Si')">
+                                                            SÍ / VERDADERO
+                                                        </button>
+                                                        <button (click)="toggleAnswer(q, 'No')"
+                                                            class="flex-1 py-3 rounded-xl border border-border-dark font-black uppercase tracking-widest text-xs transition-all"
+                                                            [class.bg-red-500/20]="q.answers.includes('No')"
+                                                            [class.text-red-400]="q.answers.includes('No')"
+                                                            [class.border-red-500/50]="q.answers.includes('No')">
+                                                            NO / FALSO
+                                                        </button>
+                                                    </div>
+                                                } @else {
+                                                    <div class="space-y-3">
+                                                        <input type="text" 
+                                                            [ngModel]="q.answers.join(', ')" 
+                                                            (ngModelChange)="parseAnswers(q, $event)"
+                                                            placeholder="Escribe la respuesta correcta (separa por comas si son varias)..."
+                                                            class="w-full bg-surface-dark border border-border-dark rounded-xl px-4 py-3 text-sm text-white font-medium focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all placeholder:text-slate-600"/>
+                                                    </div>
+                                                }
+                                            </div>
+
+                                            <div class="pl-12 pt-6 border-t border-white/5 flex flex-wrap gap-8 items-end">
+                                                @if (q.mode === 'single') {
+                                                    <div class="space-y-2">
+                                                        <label class="text-[8px] font-black uppercase tracking-widest text-slate-500 block px-1">Puntos Totales</label>
+                                                        <div class="relative w-[140px]">
+                                                            <input type="number" [(ngModel)]="q.points" 
+                                                                class="w-full bg-surface-dark border border-border-dark rounded-xl px-4 py-2.5 text-xs font-bold text-white focus:ring-1 focus:ring-primary outline-none transition-all"/>
+                                                            <span class="absolute right-3 top-1/2 -translate-y-1/2 text-[9px] font-black text-primary/50">PTS</span>
+                                                        </div>
+                                                    </div>
+                                                } @else {
+                                                    <div class="flex flex-wrap gap-8">
+                                                        <div class="space-y-2">
+                                                            <label class="text-[8px] font-black uppercase tracking-widest text-slate-500 block px-1">Puntos x Acierto</label>
+                                                            <div class="relative w-[140px]">
+                                                                <input type="number" [(ngModel)]="q.pointsPerCorrect" 
+                                                                    class="w-full bg-surface-dark border border-border-dark rounded-xl px-4 py-2.5 text-xs font-bold text-white focus:ring-1 focus:ring-accent-neon outline-none transition-all"/>
+                                                                <span class="absolute right-3 top-1/2 -translate-y-1/2 text-[9px] font-black text-accent-neon/50">PXA</span>
+                                                            </div>
+                                                        </div>
+                                                        <div class="space-y-2">
+                                                            <label class="text-[8px] font-black uppercase tracking-widest text-slate-500 block px-1">Máximo Puntos</label>
+                                                            <div class="relative w-[140px]">
+                                                                <input type="number" [(ngModel)]="q.maxPoints" 
+                                                                    class="w-full bg-surface-dark border border-border-dark rounded-xl px-4 py-2.5 text-xs font-bold text-white focus:ring-1 focus:ring-white outline-none transition-all"/>
+                                                                <span class="absolute right-3 top-1/2 -translate-y-1/2 text-[9px] font-black text-slate-500">MAX</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                }
+                                            </div>
+                                        </li>
+                                    }
+                                </ul>
+                            </div>
+                        }
+
+                        <!-- STEP 2: RESULTS LIST (ONE ROW PER PARTICIPANT) -->
+                        @if (currentStep === 2) {
+                            <div class="px-8 flex flex-col gap-3 animate-in fade-in slide-in-from-right-4 duration-500 pb-8">
+                                @for (res of calculatedResults; track $index) {
+                                    <div class="bg-background-dark/30 border border-border-dark rounded-2xl overflow-hidden group hover:border-primary/40 transition-all">
+                                        <!-- Row Header -->
+                                        <div class="px-6 py-4 flex items-center justify-between bg-white/[0.02] group-hover:bg-white/[0.05] transition-colors">
+                                            <div class="flex items-center gap-6 flex-1">
+                                                <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary border border-primary/20 shrink-0">
+                                                    <span class="material-symbols-outlined text-lg">person</span>
+                                                </div>
+                                                <div class="flex flex-col">
+                                                    <span class="text-[8px] font-black uppercase tracking-[0.2em] text-slate-500 mb-0.5">Participante</span>
+                                                    <span class="text-sm font-black text-white uppercase italic tracking-tight">{{ res.participantName }}</span>
+                                                </div>
+                                            </div>
+
+                                            <div class="flex items-center gap-12">
+                                                <div class="flex flex-col items-end">
+                                                    <span class="text-[8px] font-black uppercase tracking-[0.2em] text-slate-500 mb-0.5">Respuestas</span>
+                                                    <span class="text-xs font-bold text-slate-300">{{ res.answers.length }} preguntas</span>
+                                                </div>
+                                                <div class="flex flex-col items-end min-w-[80px]">
+                                                    <span class="text-[8px] font-black uppercase tracking-[0.2em] text-primary mb-0.5">Puntaje Total</span>
+                                                    <span class="text-2xl font-black text-primary italic leading-none drop-shadow-[0_0_10px_rgba(224,22,0,0.4)]">
+                                                        {{ res.totalScore }}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Vertical Breakdown Section: Detailed Vertical Stack -->
+                                        <div class="border-t border-border-dark/50 bg-black/20 p-4">
+                                            <div class="flex flex-col gap-3">
+                                                @for (ans of res.answers; track aq_idx; let aq_idx = $index) {
+                                                    <div class="flex items-start gap-4 p-4 rounded-xl bg-surface-dark/40 border border-border-dark/20 group/q hover:bg-white/[0.03] transition-all">
+                                                        <!-- Question Number -->
+                                                        <div class="w-8 h-8 rounded-lg bg-background-dark flex items-center justify-center text-[10px] font-black text-slate-500 border border-border-dark shrink-0 group-hover/q:text-primary group-hover/q:border-primary/30 transition-colors mt-1">
+                                                            {{ aq_idx + 1 }}
+                                                        </div>
+                                                        
+                                                        <!-- Vertical Stack Content -->
+                                                        <div class="flex-1 flex flex-col gap-3 min-w-0">
+                                                            <!-- 1. Question (Top) -->
+                                                            <div class="flex flex-col">
+                                                                <span class="text-[7px] font-black text-slate-600 uppercase tracking-widest mb-1">Pregunta</span>
+                                                                <p class="text-[11px] font-bold text-slate-200 leading-tight">
+                                                                    {{ ans.question }}
+                                                                </p>
+                                                            </div>
+
+                                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                                <!-- 2. Correct Answer (Middle) -->
+                                                                <div class="flex flex-col p-2.5 rounded-lg bg-primary/5 border border-primary/10">
+                                                                    <div class="flex items-center gap-2 mb-1">
+                                                                        <span class="w-1 h-1 rounded-full bg-primary shadow-[0_0_5px_rgba(224,22,0,1)]"></span>
+                                                                        <span class="text-[7px] font-black text-primary uppercase tracking-widest">Respuesta Correcta</span>
+                                                                    </div>
+                                                                    <p class="text-[10px] font-black text-white italic">
+                                                                        {{ extractedQuestions[aq_idx].answers.join(', ') }}
+                                                                    </p>
+                                                                </div>
+
+                                                                <!-- 3. Given Answer (Bottom) -->
+                                                                <div class="flex flex-col p-2.5 rounded-lg bg-white/5 border border-white/10">
+                                                                    <div class="flex items-center gap-2 mb-1">
+                                                                        <span class="w-1 h-1 rounded-full bg-slate-500"></span>
+                                                                        <span class="text-[7px] font-black text-slate-500 uppercase tracking-widest">Respuesta del Participante</span>
+                                                                    </div>
+                                                                    <p class="text-[10px] font-bold" 
+                                                                       [class.text-slate-300]="ans.answer"
+                                                                       [class.text-slate-600]="!ans.answer">
+                                                                        {{ ans.answer || 'Sin respuesta' }}
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <!-- Points (Sticky to the right) -->
+                                                        <div class="min-w-[80px] flex flex-col items-end pt-2 border-l border-white/5 pl-4 ml-2">
+                                                            <span class="text-[7px] font-black text-slate-600 uppercase tracking-widest mb-1">Resultado</span>
+                                                            <div class="flex items-center gap-1.5"
+                                                                [class.text-accent-neon]="(ans.points || 0) > 0"
+                                                                [class.text-primary]="(ans.points || 0) === 0 && ans.answer"
+                                                                [class.text-slate-700]="(ans.points || 0) === 0 && !ans.answer">
+                                                                <span class="text-xl font-black italic tracking-tighter">{{ ans.points }}</span>
+                                                                <span class="text-[8px] font-black uppercase tracking-tighter opacity-50">pts</span>
+                                                            </div>
+                                                            @if ((ans.points || 0) > 0) {
+                                                                <div class="mt-1 px-2 py-0.5 rounded-full bg-accent-neon/10 border border-accent-neon/20">
+                                                                    <span class="text-[6px] font-black text-accent-neon uppercase">ACIERTO</span>
+                                                                </div>
+                                                            }
+                                                        </div>
+                                                    </div>
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    } @else {
+                        <div class="h-full flex flex-col items-center justify-center gap-6 py-32">
+                            <div class="w-24 h-24 rounded-full bg-border-dark/20 flex items-center justify-center text-slate-700 animate-pulse">
+                                <span class="material-symbols-outlined text-5xl">checklist_rtl</span>
+                            </div>
+                            <div class="text-center space-y-2">
+                                <p class="text-xs font-black uppercase tracking-[0.3em] text-slate-600 italic">Esperando archivo CSV</p>
+                                <p class="text-[10px] text-slate-700 font-bold uppercase">Sube un archivo para configurar las respuestas correctas</p>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</main>

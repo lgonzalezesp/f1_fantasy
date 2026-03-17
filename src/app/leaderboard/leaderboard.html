@@ -1,1 +1,236 @@
-<p>leaderboard works!</p>
+<app-navbar></app-navbar>
+
+<main class="max-w-[1440px] mx-auto px-6 py-12">
+    <!-- Main Header -->
+    <div class="flex flex-col md:flex-row items-center justify-between mb-16 gap-8">
+        <div>
+            <h1 class="text-6xl font-black italic uppercase tracking-tighter text-white">Ranking General</h1>
+            <p class="text-slate-500 font-bold uppercase tracking-widest mt-2 flex items-center gap-2">
+                <span class="w-8 h-0.5 bg-primary"></span>
+                F1 Fantasy — Temporada 2026
+            </p>
+        </div>
+        
+        <!-- Season Switcher -->
+        <div class="flex items-center gap-4 bg-white/5 p-2 rounded-2xl border border-white/10">
+            <span class="text-[10px] font-black uppercase text-slate-500 ml-4">Temporada</span>
+            <select (change)="onSeasonChange(t.value)" #t class="bg-background-dark text-white text-xs font-bold px-6 py-3 rounded-xl border border-border-dark focus:ring-2 focus:ring-primary/50 outline-none">
+                <option *ngFor="let s of (seasons$ | async)" [value]="s.id" [selected]="s.isActive">
+                    {{ s.name }}
+                </option>
+            </select>
+        </div>
+    </div>
+
+    @if (isLoading) {
+        <div class="py-20 flex flex-col items-center justify-center gap-10">
+           <div class="w-20 h-20 border-4 border-slate-800 border-t-primary rounded-full animate-spin"></div>
+           <p class="text-xs font-black uppercase tracking-[0.5em] text-slate-500 animate-pulse">Sincronizando Ranking...</p>
+        </div>
+    } @else {
+        <div class="space-y-16">
+            
+            <!-- SECTION 1: General Ranking Table -->
+            <div class="bg-surface-dark border border-border-dark rounded-[2.5rem] overflow-hidden shadow-2xl relative">
+                <div class="absolute inset-0 carbon-texture opacity-20 pointer-events-none"></div>
+                
+                <div class="px-10 py-8 border-b border-border-dark bg-white/5 relative z-10 flex items-center justify-between">
+                    <div class="flex items-center gap-4">
+                        <span class="material-symbols-outlined text-primary drop-shadow-[0_0_10px_rgba(224,22,0,0.5)]">leaderboard</span>
+                        <h2 class="text-xl font-black uppercase italic tracking-tight">Tabla de Posiciones General</h2>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto relative z-10">
+                    <table class="w-full text-left">
+                        <thead>
+                            <tr class="text-[11px] font-black uppercase tracking-widest text-slate-500 border-b border-border-dark">
+                                <th class="px-10 py-6 w-24">Pos</th>
+                                <th class="px-10 py-6">Participante</th>
+                                <th class="px-10 py-6 text-center">Carreras</th>
+                                <th class="px-10 py-6 text-right">Puntaje Total</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-border-dark/50">
+                            @for (p of (generalRanking$ | async); track p.name; let idx = $index) {
+                                <tr class="hover:bg-white/5 transition-all group">
+                                    <td class="px-10 py-6">
+                                        <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg font-black italic border"
+                                             [ngClass]="idx < 3 ? 'bg-primary border-primary text-white shadow-[0_0_15px_rgba(224,22,0,0.4)]' : 'bg-background-dark border-border-dark text-slate-500'">
+                                            {{ idx + 1 }}
+                                        </div>
+                                    </td>
+                                    <td class="px-10 py-6">
+                                        <div class="flex items-center gap-4">
+                                            <div class="w-2 h-2 rounded-full" [ngClass]="idx < 3 ? 'bg-accent-neon animate-pulse shadow-[0_0_8px_#39ff14]' : 'bg-slate-700'"></div>
+                                            <span class="text-lg font-black uppercase italic tracking-tight group-hover:text-primary transition-colors">
+                                                {{ p.name }}
+                                            </span>
+                                        </div>
+                                    </td>
+                                    <td class="px-10 py-6 text-center">
+                                        <span class="bg-white/5 px-4 py-1 rounded-full text-[10px] font-black text-slate-400 border border-white/5">
+                                            {{ p.racesCount }} GPs
+                                        </span>
+                                    </td>
+                                    <td class="px-10 py-6 text-right">
+                                        <span class="text-3xl font-black italic text-white tabular-nums drop-shadow-[0_0_10px_rgba(255,255,255,0.1)]">
+                                            {{ p.totalScore }}
+                                        </span>
+                                    </td>
+                                </tr>
+                            } @empty {
+                                <tr>
+                                    <td colspan="4" class="px-10 py-20 text-center">
+                                        <p class="text-slate-600 font-bold uppercase tracking-widest">No hay datos de competencia aún</p>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- SECTION 2: Race Specific Scores (Below the table) -->
+            <div class="space-y-8 pt-8">
+                <div class="flex items-center gap-4 mb-4">
+                    <span class="w-12 h-1 bg-primary"></span>
+                    <h2 class="text-3xl font-black uppercase italic tracking-tighter">Desglose por Carrera</h2>
+                </div>
+
+                <div class="grid grid-cols-1 gap-8">
+                    <!-- Race Results Main Display -->
+                    <div class="lg:col-span-12">
+                        <div class="bg-surface-dark border border-border-dark rounded-3xl overflow-hidden min-h-[400px]">
+                            <!-- Header with modern Dropdown -->
+                            <div class="px-8 py-6 bg-white/5 border-b border-border-dark flex flex-col md:flex-row md:items-center justify-between gap-6">
+                                <div class="space-y-1">
+                                    <h3 class="text-sm font-black uppercase tracking-[0.2em] text-primary flex items-center gap-2">
+                                        <span class="material-symbols-outlined text-sm">person_search</span>
+                                        Análisis de Carrera
+                                    </h3>
+                                    <p class="text-[10px] font-black uppercase text-slate-500 tracking-widest">Selecciona un Gran Premio para ver el desglose</p>
+                                </div>
+
+                                <!-- Styled Select Dropdown -->
+                                <div class="relative group w-full md:w-72 flex items-center gap-4">
+                                    @if (isLoadingRaces) {
+                                        <div class="w-5 h-5 border-2 border-slate-700 border-t-primary rounded-full animate-spin flex-shrink-0"></div>
+                                    }
+                                    <select [ngModel]="raceIdSubject | async" 
+                                            (ngModelChange)="setRace($event)"
+                                            [disabled]="isLoadingRaces"
+                                            class="w-full bg-background-dark/80 border border-white/10 rounded-2xl px-6 py-4 text-xs font-black uppercase tracking-widest italic text-white appearance-none cursor-pointer focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all hover:bg-white/5 disabled:opacity-50 disabled:cursor-wait">
+                                        <option value="" disabled>{{ isLoadingRaces ? 'Cargando GPs...' : 'Elegir Gran Premio...' }}</option>
+                                        @for (race of races$ | async; track race.id) {
+                                            <option [value]="race.id">{{ race.name }}</option>
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+
+                            @if (raceIdSubject | async; as selectedId) {
+                                <div class="flex flex-col">
+                                    @if (isLoadingResults) {
+                                        <div class="flex flex-col items-center justify-center py-24 gap-6">
+                                            <div class="w-12 h-12 border-4 border-slate-800 border-t-primary rounded-full animate-spin"></div>
+                                            <p class="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 animate-pulse">Cargando resultados...</p>
+                                        </div>
+                                    } @else {
+                                    @if (raceResultsReactivity$ | async; as raceRes) {
+                                        @for (r of raceRes; track r.id; let i = $index) {
+                                            <div class="border-b border-border-dark last:border-0 p-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500" [style.animation-delay]="i * 50 + 'ms'">
+                                                <!-- Participant Header -->
+                                                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                                    <div class="flex items-center gap-6">
+                                                        <span class="text-4xl font-black italic text-slate-800">#{{ i + 1 }}</span>
+                                                        <div>
+                                                            <h4 class="text-2xl font-black uppercase italic text-white tracking-tighter">{{ r.participantName }}</h4>
+                                                            <p class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 mt-1">Desempeño en Carrera</p>
+                                                        </div>
+                                                    </div>
+                                                    <div class="bg-primary shadow-[0_0_20px_rgba(224,22,0,0.3)] rounded-2xl px-8 py-4 text-right">
+                                                        <span class="text-[10px] font-black uppercase text-white/60 block mb-1">Total Puntos</span>
+                                                        <span class="text-3xl font-black italic text-white tabular-nums">{{ r.totalScore }}</span>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Answers List for this Participant (ONE ROW PER QUESTION) -->
+                                                <div class="space-y-4">
+                                                    @for (ans of r.answers; track ans.question; let qIdx = $index) {
+                                                        @let correct = getCorrectAnswer(selectedId, ans.question);
+                                                        <div class="bg-background-dark/40 border border-white/5 rounded-2xl overflow-hidden group hover:border-white/20 transition-all">
+                                                            <div class="grid grid-cols-12 items-center">
+                                                                <!-- Question and Answers -->
+                                                                <div class="col-span-9 p-6 flex flex-col gap-4">
+                                                                    <p class="text-[11px] font-black uppercase tracking-widest text-slate-300">
+                                                                        {{ ans.question }}
+                                                                    </p>
+                                                                    
+                                                                    <div class="grid grid-cols-2 gap-8">
+                                                                        <!-- Correct -->
+                                                                        <div class="flex items-start gap-3">
+                                                                            <div class="w-1 h-8 bg-primary/40 rounded-full mt-1"></div>
+                                                                            <div>
+                                                                                <span class="text-[8px] font-black uppercase text-primary tracking-[0.2em] block mb-0.5">Correcta</span>
+                                                                                <p class="text-xs font-bold text-white italic uppercase">{{ correct?.answer || '---' }}</p>
+                                                                            </div>
+                                                                        </div>
+                                                                        <!-- Given -->
+                                                                        <div class="flex items-start gap-3">
+                                                                            <div class="w-1 h-8 rounded-full mt-1" [ngClass]="ans.points ? 'bg-accent-neon/40' : 'bg-slate-700'"></div>
+                                                                            <div>
+                                                                                <span class="text-[8px] font-black uppercase text-slate-500 tracking-[0.2em] block mb-0.5">Respuesta Dada</span>
+                                                                                <p class="text-xs font-bold uppercase" 
+                                                                                   [ngClass]="ans.points ? 'text-accent-neon' : 'text-slate-500'">
+                                                                                    {{ ans.answer || 'Sin respuesta' }}
+                                                                                </p>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+
+                                                                <!-- Points & Status -->
+                                                                <div class="col-span-3 p-6 flex items-center justify-end gap-6 bg-white/[0.02]">
+                                                                    <div class="flex flex-col items-end">
+                                                                        <div class="flex items-center gap-2 mb-1">
+                                                                            <span class="material-symbols-outlined text-sm" 
+                                                                                  [ngClass]="ans.points ? 'text-accent-neon' : 'text-slate-700'">
+                                                                                {{ ans.points ? 'check_circle' : 'cancel' }}
+                                                                            </span>
+                                                                            <span class="text-[10px] font-black uppercase tracking-widest" 
+                                                                                  [ngClass]="ans.points ? 'text-accent-neon' : 'text-slate-700'">
+                                                                                {{ ans.points ? 'Acierto' : 'Fallida' }}
+                                                                            </span>
+                                                                        </div>
+                                                                        <span class="text-2xl font-black italic tabular-nums" [class]="ans.points ? 'text-white' : 'text-slate-800'">
+                                                                            +{{ ans.points || 0 }} <span class="text-[10px] uppercase ml-1">pts</span>
+                                                                        </span>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    }
+                                                </div>
+                                            </div>
+                                        } @empty {
+                                            <div class="flex flex-col items-center justify-center py-40 text-center opacity-40">
+                                                <span class="material-symbols-outlined text-6xl mb-4">analytics</span>
+                                                <p class="text-xs font-black uppercase tracking-widest">No hay respuestas cargadas</p>
+                                            </div>
+                                        }
+                                    }
+                                </div>
+                            } @else {
+                                <div class="flex flex-col items-center justify-center h-[400px] text-center opacity-40">
+                                    <span class="material-symbols-outlined text-6xl mb-4 text-slate-700">mouse</span>
+                                    <p class="text-xs font-black uppercase tracking-widest text-slate-500">Selecciona una carrera de la lista lateral</p>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</main>

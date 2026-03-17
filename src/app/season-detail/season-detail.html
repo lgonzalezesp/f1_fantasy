@@ -1,0 +1,112 @@
+<app-navbar></app-navbar>
+
+@if (isLoading) {
+    <div class="fixed inset-0 z-[100] flex items-center justify-center bg-white/40 backdrop-blur-md transition-opacity">
+        <div class="bg-surface-dark border border-border-dark p-8 rounded-2xl shadow-2xl flex flex-col items-center justify-center gap-6 transform scale-100">
+            <div class="relative w-16 h-16">
+                <div class="absolute inset-0 rounded-full border-4 border-slate-700"></div>
+                <div class="absolute inset-0 rounded-full border-4 border-primary border-t-transparent animate-spin"></div>
+                <div class="absolute inset-0 flex items-center justify-center text-primary drop-shadow-[0_0_8px_rgba(224,22,0,0.8)]">
+                    <span class="material-symbols-outlined text-2xl">sports_motorsports</span>
+                </div>
+            </div>
+            <p class="text-sm font-black uppercase tracking-widest text-slate-300 animate-pulse">Cargando Carreras...</p>
+        </div>
+    </div>
+}
+
+<main class="max-w-[1440px] mx-auto px-6 py-8">
+    <!-- Header Section -->
+    <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10 border-l-4 border-primary pl-6">
+        <div>
+            <div class="flex items-center gap-2 mb-2">
+                <a routerLink="/admin/season" class="text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-primary transition-colors flex items-center gap-1">
+                    <span class="material-symbols-outlined text-xs">arrow_back</span>
+                    Temporadas
+                </a>
+            </div>
+            <h2 class="text-4xl font-black uppercase tracking-tighter italic">{{ seasonName || 'Detalle de Temporada' }}</h2>
+            <p class="text-slate-500 font-medium">Listado de carreras y estado de carga de respuestas</p>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 gap-8">
+        <!-- Races List -->
+        <div class="bg-surface-dark rounded-xl border border-border-dark overflow-hidden shadow-2xl">
+            <div class="px-6 py-4 border-b border-border-dark flex items-center justify-between bg-white/5">
+                <h4 class="font-bold uppercase tracking-widest text-xs">Calendario de Carreras</h4>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead>
+                        <tr class="text-[10px] uppercase font-black tracking-widest text-slate-500 border-b border-border-dark">
+                            <th class="px-6 py-4 w-16">Round</th>
+                            <th class="px-6 py-4">Carrera / Circuito</th>
+                            <th class="px-6 py-4 text-center">Estado de Respuestas</th>
+                            <th class="px-6 py-4 text-right">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-border-dark relative">
+                        @for (race of (racesWithStatus$ | async); track race.id) {
+                            <tr class="hover:bg-white/5 transition-colors group">
+                                <td class="px-6 py-4">
+                                    <div class="w-8 h-8 rounded bg-background-dark border border-border-dark flex items-center justify-center text-xs font-black text-slate-400 group-hover:border-primary/50 group-hover:text-primary transition-all">
+                                        {{ race.round }}
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <a [routerLink]="['/admin/race', race.id]" class="flex flex-col group/race">
+                                        <p class="font-bold text-sm tracking-tight text-white uppercase italic group-hover/race:text-primary transition-all">
+                                            {{ race.name }}
+                                        </p>
+                                        <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">{{ race.circuit }}</p>
+                                    </a>
+                                </td>
+                                <td class="px-6 py-4 text-center">
+                                    <a [routerLink]="['/admin/race', race.id]">
+                                        @if (race.hasResponses) {
+                                            <span class="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-green-500/10 text-green-400 border border-green-500/20 hover:bg-green-500/20 transition-all">
+                                                <span class="material-symbols-outlined text-[12px] mr-1">check_circle</span>
+                                                Cargado
+                                            </span>
+                                        } @else {
+                                            <span class="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-primary/10 text-primary border border-primary/20 animate-pulse hover:bg-primary/20 transition-all">
+                                                <span class="material-symbols-outlined text-[12px] mr-1">pending</span>
+                                                Pendiente
+                                            </span>
+                                        }
+                                    </a>
+                                </td>
+                                <td class="px-6 py-4 text-right">
+                                    <div class="flex items-center justify-end gap-2">
+                                        @if (race.hasResponses) {
+                                            <button (click)="clearRaceResponses(race)" title="Vaciar respuestas y configuración"
+                                                class="w-10 h-10 flex items-center justify-center rounded-lg bg-red-500/5 border border-red-500/20 text-red-500 hover:bg-red-500/20 hover:border-red-500/40 transition-all">
+                                                <span class="material-symbols-outlined text-lg">delete_sweep</span>
+                                            </button>
+                                        }
+                                        <a [routerLink]="['/admin/races/response']" [queryParams]="{ seasonId: seasonId, raceId: race.id }" 
+                                           class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-surface-dark border border-border-dark hover:border-primary hover:text-primary text-[10px] font-black uppercase tracking-widest transition-all">
+                                            <span class="material-symbols-outlined text-sm">upload_file</span>
+                                            {{ race.hasResponses ? 'Recargar' : 'Cargar' }}
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        } @empty {
+                            <tr>
+                                <td colspan="4" class="px-6 py-12 text-center">
+                                    <div class="flex flex-col items-center gap-4">
+                                        <span class="material-symbols-outlined text-4xl text-slate-700">flag</span>
+                                        <p class="text-slate-500 font-medium">No hay carreras registradas para esta temporada.</p>
+                                        <a routerLink="/admin/races" class="text-xs font-black uppercase tracking-widest text-primary hover:underline">Ir a Gestión de Carreras</a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</main>
