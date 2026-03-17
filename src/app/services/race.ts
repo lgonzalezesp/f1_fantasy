@@ -10,6 +10,7 @@ export interface RaceModel {
   date: string;
   seasonId: string;
   round: number;
+  status?: string; // e.g. 'cargado', 'pendiente', etc.
 }
 
 @Injectable({
@@ -27,6 +28,14 @@ export class RaceService {
   getRacesBySeason(seasonId: string): Observable<RaceModel[]> {
     const racesRef = collection(this.firestore, this.collectionName);
     const q = query(racesRef, where('seasonId', '==', seasonId));
+    return (collectionData(q, { idField: 'id' }) as Observable<RaceModel[]>).pipe(
+        map(races => races.sort((a, b) => a.round - b.round))
+    );
+  }
+
+  getRacesBySeasonLoaded(seasonId: string): Observable<RaceModel[]> {
+    const racesRef = collection(this.firestore, this.collectionName);
+    const q = query(racesRef, where('seasonId', '==', seasonId), where('status', '==', 'cargado'));
     return (collectionData(q, { idField: 'id' }) as Observable<RaceModel[]>).pipe(
         map(races => races.sort((a, b) => a.round - b.round))
     );

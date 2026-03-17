@@ -41,22 +41,9 @@ export class Leaderboard implements OnInit {
     })
   );
 
-  // Races for the selected season - FILTERED: only show races with information
+  // Races for the selected season - only races with status 'cargado'
   races$: Observable<RaceModel[]> = this.selectedSeasonId.pipe(
-    tap(() => this.isLoadingRaces = true),
-    switchMap(id => id ? this.raceService.getRacesBySeason(id) : of([])),
-    switchMap(async races => {
-      const filtered = [];
-      for(const race of races) {
-        const docRef = doc(this.firestore, `correct_answers/${race.id}`);
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          filtered.push(race);
-        }
-      }
-      this.isLoadingRaces = false;
-      return filtered;
-    })
+    switchMap(id => id ? this.raceService.getRacesBySeasonLoaded(id) : of([]))
   );
 
   // General Leaderboard (Aggregated)
@@ -159,5 +146,18 @@ export class Leaderboard implements OnInit {
 
   toggleParticipant(id: string) {
     this.selectedParticipantId = this.selectedParticipantId === id ? '' : id;
+  }
+
+  /** Splits a string | string[] answer into individual trimmed tokens */
+  getAnswerTokens(answer: string | string[]): string[] {
+    if (Array.isArray(answer)) return answer.map(a => a.trim()).filter(a => !!a);
+    return answer.split(',').map(a => a.trim()).filter(a => !!a);
+  }
+
+  /** Checks if a single answer token matches the correct answer string (supports comma-separated correct answers) */
+  isTokenCorrect(correctAnswer: string | undefined, token: string): boolean {
+    if (!correctAnswer) return false;
+    const correctTokens = correctAnswer.split(',').map(s => s.trim().toLowerCase());
+    return correctTokens.includes(token.trim().toLowerCase());
   }
 }

@@ -255,6 +255,20 @@ export class RacesResponse implements OnInit {
     this.isConfigOpen = !this.isConfigOpen;
   }
 
+  /** Returns true if a single answer token matches any of the correct answers for the question at qIdx */
+  isAnswerCorrect(qIdx: number, token: string): boolean {
+    const q = this.extractedQuestions[qIdx];
+    if (!q) return false;
+    const normalized = this.normalizeAnswer(token).toLowerCase().trim();
+    return q.answers.some(a => a.toLowerCase().trim() === normalized);
+  }
+
+  /** Splits a string | string[] answer into individual trimmed tokens */
+  getAnswerTokens(answer: string | string[]): string[] {
+    if (Array.isArray(answer)) return answer.map(a => a.trim()).filter(a => !!a);
+    return answer.split(',').map(a => a.trim()).filter(a => !!a);
+  }
+
   get isConfigValid(): boolean {
     if (this.extractedQuestions.length === 0) return false;
     return this.extractedQuestions.every(q => {
@@ -264,6 +278,11 @@ export class RacesResponse implements OnInit {
     });
   }
 
+  /** Strips parenthetical team names, e.g. "Charles Leclerc (Scuderia Ferrari)" → "Charles Leclerc" */
+  private normalizeAnswer(value: string): string {
+    return value.replace(/\s*\(.*?\)\s*/g, '').trim();
+  }
+
   private calculateScore(userAnswers: {question: string, answer: string | string[], points?: number}[], correctConfigs: QuestionConfig[]): number {
     let total = 0;
 
@@ -271,8 +290,8 @@ export class RacesResponse implements OnInit {
       const config = correctConfigs.find(c => c.question === ua.question);
       if (!config) return;
 
-      const userRawAnswer = String(ua.answer || '');
-      const userSelected = userRawAnswer.split(',').map(s => s.trim().toLowerCase()).filter(s => !!s);
+      const userRawAnswer = this.normalizeAnswer(String(ua.answer || ''));
+      const userSelected = userRawAnswer.split(',').map(s => this.normalizeAnswer(s).toLowerCase()).filter(s => !!s);
       const correctOnes = config.answers.map(s => s.trim().toLowerCase());
 
       let questionPoints = 0;
@@ -380,7 +399,7 @@ export class RacesResponse implements OnInit {
         this.extractedQuestions.forEach(q => {
           response.answers.push({
             question: q.question,
-            answer: row[q.question] || ''
+            answer: this.normalizeAnswer(row[q.question] || '')
           });
         });
 
@@ -394,6 +413,8 @@ export class RacesResponse implements OnInit {
       }
 
       this.uploadStatus = '¡Configuración, resultados y PUNTOS calculados con éxito!';
+      // Mark the race as loaded so it appears in the leaderboard
+      await this.raceService.updateRace(raceId, { status: 'cargado' });
       this.isConfigOpen = true; 
       this.currentStep = 2; // Pass to results step
       // We keep parsedData and extractedQuestions for reference if needed, 

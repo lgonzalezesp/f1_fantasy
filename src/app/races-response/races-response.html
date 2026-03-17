@@ -351,15 +351,27 @@
 
                                                                 <!-- 3. Given Answer (Bottom) -->
                                                                 <div class="flex flex-col p-2.5 rounded-lg bg-white/5 border border-white/10">
-                                                                    <div class="flex items-center gap-2 mb-1">
+                                                                    <div class="flex items-center gap-2 mb-2">
                                                                         <span class="w-1 h-1 rounded-full bg-slate-500"></span>
                                                                         <span class="text-[7px] font-black text-slate-500 uppercase tracking-widest">Respuesta del Participante</span>
                                                                     </div>
-                                                                    <p class="text-[10px] font-bold" 
-                                                                       [class.text-slate-300]="ans.answer"
-                                                                       [class.text-slate-600]="!ans.answer">
-                                                                        {{ ans.answer || 'Sin respuesta' }}
-                                                                    </p>
+                                                                    @if (ans.answer) {
+                                                                        <div class="flex flex-wrap gap-1.5">
+                                                                            @for (token of getAnswerTokens(ans.answer); track $index) {
+                                                                                <span class="px-2 py-1 rounded-lg text-[9px] font-black uppercase tracking-wide border transition-all"
+                                                                                      [ngClass]="isAnswerCorrect(aq_idx, token) 
+                                                                                                  ? 'bg-green-500/15 border-green-500/40 text-green-400' 
+                                                                                                  : 'bg-white/5 border-white/10 text-slate-400'">
+                                                                                    {{ token.trim() }}
+                                                                                    @if (isAnswerCorrect(aq_idx, token)) {
+                                                                                        <span class="ml-1 opacity-70">✓</span>
+                                                                                    }
+                                                                                </span>
+                                                                            }
+                                                                        </div>
+                                                                    } @else {
+                                                                        <p class="text-[10px] font-bold text-slate-600 italic">Sin respuesta</p>
+                                                                    }
                                                                 </div>
                                                             </div>
                                                         </div>

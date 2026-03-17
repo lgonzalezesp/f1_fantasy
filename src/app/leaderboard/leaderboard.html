@@ -113,15 +113,11 @@
                                 </div>
 
                                 <!-- Styled Select Dropdown -->
-                                <div class="relative group w-full md:w-72 flex items-center gap-4">
-                                    @if (isLoadingRaces) {
-                                        <div class="w-5 h-5 border-2 border-slate-700 border-t-primary rounded-full animate-spin flex-shrink-0"></div>
-                                    }
+                                <div class="w-full md:w-72">
                                     <select [ngModel]="raceIdSubject | async" 
                                             (ngModelChange)="setRace($event)"
-                                            [disabled]="isLoadingRaces"
-                                            class="w-full bg-background-dark/80 border border-white/10 rounded-2xl px-6 py-4 text-xs font-black uppercase tracking-widest italic text-white appearance-none cursor-pointer focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all hover:bg-white/5 disabled:opacity-50 disabled:cursor-wait">
-                                        <option value="" disabled>{{ isLoadingRaces ? 'Cargando GPs...' : 'Elegir Gran Premio...' }}</option>
+                                            class="w-full bg-background-dark/80 border border-white/10 rounded-2xl px-6 py-4 text-xs font-black uppercase tracking-widest italic text-white appearance-none cursor-pointer focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all hover:bg-white/5">
+                                        <option value="" disabled>Elegir Gran Premio...</option>
                                         @for (race of races$ | async; track race.id) {
                                             <option [value]="race.id">{{ race.name }}</option>
                                         }
@@ -137,94 +133,105 @@
                                             <p class="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 animate-pulse">Cargando resultados...</p>
                                         </div>
                                     } @else {
-                                    @if (raceResultsReactivity$ | async; as raceRes) {
-                                        @for (r of raceRes; track r.id; let i = $index) {
-                                            <div class="border-b border-border-dark last:border-0 p-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500" [style.animation-delay]="i * 50 + 'ms'">
-                                                <!-- Participant Header -->
-                                                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                                                    <div class="flex items-center gap-6">
-                                                        <span class="text-4xl font-black italic text-slate-800">#{{ i + 1 }}</span>
-                                                        <div>
-                                                            <h4 class="text-2xl font-black uppercase italic text-white tracking-tighter">{{ r.participantName }}</h4>
-                                                            <p class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 mt-1">Desempeño en Carrera</p>
+                                        @if (raceResultsReactivity$ | async; as raceRes) {
+                                            @for (r of raceRes; track r.id; let i = $index) {
+                                                <div class="border-b border-border-dark last:border-0 p-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500" [style.animation-delay]="i * 50 + 'ms'">
+                                                    <!-- Participant Header -->
+                                                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                                        <div class="flex items-center gap-6">
+                                                            <span class="text-4xl font-black italic text-slate-800">#{{ i + 1 }}</span>
+                                                            <div>
+                                                                <h4 class="text-2xl font-black uppercase italic text-white tracking-tighter">{{ r.participantName }}</h4>
+                                                                <p class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 mt-1">Desempeño en Carrera</p>
+                                                            </div>
+                                                        </div>
+                                                        <div class="bg-primary shadow-[0_0_20px_rgba(224,22,0,0.3)] rounded-2xl px-8 py-4 text-right">
+                                                            <span class="text-[10px] font-black uppercase text-white/60 block mb-1">Total Puntos</span>
+                                                            <span class="text-3xl font-black italic text-white tabular-nums">{{ r.totalScore }}</span>
                                                         </div>
                                                     </div>
-                                                    <div class="bg-primary shadow-[0_0_20px_rgba(224,22,0,0.3)] rounded-2xl px-8 py-4 text-right">
-                                                        <span class="text-[10px] font-black uppercase text-white/60 block mb-1">Total Puntos</span>
-                                                        <span class="text-3xl font-black italic text-white tabular-nums">{{ r.totalScore }}</span>
-                                                    </div>
-                                                </div>
 
-                                                <!-- Answers List for this Participant (ONE ROW PER QUESTION) -->
-                                                <div class="space-y-4">
-                                                    @for (ans of r.answers; track ans.question; let qIdx = $index) {
-                                                        @let correct = getCorrectAnswer(selectedId, ans.question);
-                                                        <div class="bg-background-dark/40 border border-white/5 rounded-2xl overflow-hidden group hover:border-white/20 transition-all">
-                                                            <div class="grid grid-cols-12 items-center">
-                                                                <!-- Question and Answers -->
-                                                                <div class="col-span-9 p-6 flex flex-col gap-4">
-                                                                    <p class="text-[11px] font-black uppercase tracking-widest text-slate-300">
-                                                                        {{ ans.question }}
-                                                                    </p>
-                                                                    
-                                                                    <div class="grid grid-cols-2 gap-8">
-                                                                        <!-- Correct -->
-                                                                        <div class="flex items-start gap-3">
-                                                                            <div class="w-1 h-8 bg-primary/40 rounded-full mt-1"></div>
-                                                                            <div>
-                                                                                <span class="text-[8px] font-black uppercase text-primary tracking-[0.2em] block mb-0.5">Correcta</span>
-                                                                                <p class="text-xs font-bold text-white italic uppercase">{{ correct?.answer || '---' }}</p>
+                                                    <!-- Answers List for this Participant (ONE ROW PER QUESTION) -->
+                                                    <div class="space-y-4">
+                                                        @for (ans of r.answers; track ans.question; let qIdx = $index) {
+                                                            @let correct = getCorrectAnswer(selectedId, ans.question);
+                                                            <div class="bg-background-dark/40 border border-white/5 rounded-2xl overflow-hidden group hover:border-white/20 transition-all">
+                                                                <div class="grid grid-cols-12 items-center">
+                                                                    <!-- Question and Answers -->
+                                                                    <div class="col-span-9 p-6 flex flex-col gap-4">
+                                                                        <p class="text-[11px] font-black uppercase tracking-widest text-slate-300">
+                                                                            {{ ans.question }}
+                                                                        </p>
+                                                                        
+                                                                        <div class="grid grid-cols-2 gap-8">
+                                                                            <!-- Correct -->
+                                                                            <div class="flex items-start gap-3">
+                                                                                <div class="w-1 h-8 bg-primary/40 rounded-full mt-1"></div>
+                                                                                <div>
+                                                                                    <span class="text-[8px] font-black uppercase text-primary tracking-[0.2em] block mb-0.5">Correcta</span>
+                                                                                    <p class="text-xs font-bold text-white italic uppercase">{{ correct?.answer || '---' }}</p>
+                                                                                </div>
                                                                             </div>
-                                                                        </div>
-                                                                        <!-- Given -->
-                                                                        <div class="flex items-start gap-3">
-                                                                            <div class="w-1 h-8 rounded-full mt-1" [ngClass]="ans.points ? 'bg-accent-neon/40' : 'bg-slate-700'"></div>
-                                                                            <div>
-                                                                                <span class="text-[8px] font-black uppercase text-slate-500 tracking-[0.2em] block mb-0.5">Respuesta Dada</span>
-                                                                                <p class="text-xs font-bold uppercase" 
-                                                                                   [ngClass]="ans.points ? 'text-accent-neon' : 'text-slate-500'">
-                                                                                    {{ ans.answer || 'Sin respuesta' }}
-                                                                                </p>
+                                                                            <!-- Given -->
+                                                                            <div class="flex items-start gap-3">
+                                                                                <div class="w-1 rounded-full mt-1" [ngClass]="ans.points ? 'bg-accent-neon/40 h-8' : 'bg-slate-700 h-8'"></div>
+                                                                                <div class="flex-1">
+                                                                                    <span class="text-[8px] font-black uppercase text-slate-500 tracking-[0.2em] block mb-1.5">Respuesta Dada</span>
+                                                                                    @if (ans.answer) {
+                                                                                        <div class="flex flex-wrap gap-1.5">
+                                                                                            @for (token of getAnswerTokens(ans.answer); track $index) {
+                                                                                                <span class="px-2 py-1 rounded-lg text-[9px] font-black uppercase tracking-wide border transition-all"
+                                                                                                      [ngClass]="isTokenCorrect(correct?.answer, token)
+                                                                                                                  ? 'bg-green-500/15 border-green-500/40 text-green-400'
+                                                                                                                  : 'bg-white/5 border-white/10 text-slate-500'">
+                                                                                                    {{ token }}@if (isTokenCorrect(correct?.answer, token)) {<span class="ml-1 opacity-70">✓</span>}
+                                                                                                </span>
+                                                                                            }
+                                                                                        </div>
+                                                                                    } @else {
+                                                                                        <p class="text-xs font-bold text-slate-600 italic">Sin respuesta</p>
+                                                                                    }
+                                                                                </div>
                                                                             </div>
                                                                         </div>
                                                                     </div>
-                                                                </div>
 
-                                                                <!-- Points & Status -->
-                                                                <div class="col-span-3 p-6 flex items-center justify-end gap-6 bg-white/[0.02]">
-                                                                    <div class="flex flex-col items-end">
-                                                                        <div class="flex items-center gap-2 mb-1">
-                                                                            <span class="material-symbols-outlined text-sm" 
-                                                                                  [ngClass]="ans.points ? 'text-accent-neon' : 'text-slate-700'">
-                                                                                {{ ans.points ? 'check_circle' : 'cancel' }}
-                                                                            </span>
-                                                                            <span class="text-[10px] font-black uppercase tracking-widest" 
-                                                                                  [ngClass]="ans.points ? 'text-accent-neon' : 'text-slate-700'">
-                                                                                {{ ans.points ? 'Acierto' : 'Fallida' }}
+                                                                    <!-- Points & Status -->
+                                                                    <div class="col-span-3 p-6 flex items-center justify-end gap-6 bg-white/[0.02]">
+                                                                        <div class="flex flex-col items-end">
+                                                                            <div class="flex items-center gap-2 mb-1">
+                                                                                <span class="material-symbols-outlined text-sm" 
+                                                                                      [ngClass]="ans.points ? 'text-accent-neon' : 'text-slate-700'">
+                                                                                    {{ ans.points ? 'check_circle' : 'cancel' }}
+                                                                                </span>
+                                                                                <span class="text-[10px] font-black uppercase tracking-widest" 
+                                                                                      [ngClass]="ans.points ? 'text-accent-neon' : 'text-slate-700'">
+                                                                                    {{ ans.points ? 'Acierto' : 'Fallida' }}
+                                                                                </span>
+                                                                            </div>
+                                                                            <span class="text-2xl font-black italic tabular-nums" [class]="ans.points ? 'text-white' : 'text-slate-800'">
+                                                                                +{{ ans.points || 0 }} <span class="text-[10px] uppercase ml-1">pts</span>
                                                                             </span>
                                                                         </div>
-                                                                        <span class="text-2xl font-black italic tabular-nums" [class]="ans.points ? 'text-white' : 'text-slate-800'">
-                                                                            +{{ ans.points || 0 }} <span class="text-[10px] uppercase ml-1">pts</span>
-                                                                        </span>
                                                                     </div>
                                                                 </div>
                                                             </div>
-                                                        </div>
-                                                    }
+                                                        }
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        } @empty {
-                                            <div class="flex flex-col items-center justify-center py-40 text-center opacity-40">
-                                                <span class="material-symbols-outlined text-6xl mb-4">analytics</span>
-                                                <p class="text-xs font-black uppercase tracking-widest">No hay respuestas cargadas</p>
-                                            </div>
+                                            } @empty {
+                                                <div class="flex flex-col items-center justify-center py-40 text-center opacity-40">
+                                                    <span class="material-symbols-outlined text-6xl mb-4">analytics</span>
+                                                    <p class="text-xs font-black uppercase tracking-widest">No hay respuestas cargadas</p>
+                                                </div>
+                                            }
                                         }
                                     }
                                 </div>
                             } @else {
                                 <div class="flex flex-col items-center justify-center h-[400px] text-center opacity-40">
-                                    <span class="material-symbols-outlined text-6xl mb-4 text-slate-700">mouse</span>
-                                    <p class="text-xs font-black uppercase tracking-widest text-slate-500">Selecciona una carrera de la lista lateral</p>
+                                    <span class="material-symbols-outlined text-6xl mb-4 text-slate-700">flag</span>
+                                    <p class="text-xs font-black uppercase tracking-widest text-slate-500">Selecciona un Gran Premio para ver los resultados</p>
                                 </div>
                             }
                         </div>
